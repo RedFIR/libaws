@@ -43,51 +43,48 @@ const std::string &SQS::getQueue(const std::string &queueName, bool create) cons
 		return std::move(std::string(""));
 	}
 
-
 	std::time_t t = std::time(nullptr);
-	std::string amz_date =  Utils::getAmzDate(t); 
+	std::string amzDate =  Utils::getAmzDate(t); 
 	std::string datestamp = Utils::getDatestamp(t);
 
-	std::string canonical_uri("/");
-	std::string canonical_headers = "host:" + this->_host + "\n";
-	std::string signed_headers = "host";
+	std::string canonicalUri("/");
+	std::string canonicalHeaders = "host:" + this->_host + "\n";
+	std::string signedHeaders = "host";
 
 	std::string algorithm = "AWS4-HMAC-SHA256";
-	std::string credential_scope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
+	std::string credentialScope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
 
-	std::string canonical_querystring = "Action=CreateQueue&QueueName=" + queueName; // TODO: verif queueName
-	canonical_querystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
-	std::string tmp = this->_awsKeyID + "/" + credential_scope;
-	canonical_querystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
-	canonical_querystring += "&X-Amz-Date=" + amz_date;
-	canonical_querystring += "&X-Amz-Expires=30";
-	canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers;
+	std::string canonicalQuerystring = "Action=CreateQueue&QueueName=" + queueName; // TODO: verif queueName
+	canonicalQuerystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
+	std::string tmp = this->_awsKeyID + "/" + credentialScope;
+	canonicalQuerystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
+	canonicalQuerystring += "&X-Amz-Date=" + amzDate;
+	canonicalQuerystring += "&X-Amz-Expires=30";
+	canonicalQuerystring += "&X-Amz-SignedHeaders=" + signedHeaders;
 
-	std::string payload_hash = Crypto::shaDigest();
+	std::string payloadHash = Crypto::shaDigest();
 
+	std::string canonicalRequest = this->_method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + payloadHash;
 
-	std::string canonical_request = this->_method + '\n' + canonical_uri + '\n' + canonical_querystring + '\n' + canonical_headers + '\n' + signed_headers + '\n' + payload_hash;
+	std::string stringToSign = algorithm + '\n' +  amzDate + '\n' +  credentialScope + '\n' +  Crypto::shaDigest(canonicalRequest);
 
-	std::string string_to_sign = algorithm + '\n' +  amz_date + '\n' +  credential_scope + '\n' +  Crypto::shaDigest(canonical_request);
+	std::array<byte, 32> signingKey = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
 
-	std::array<byte, 32> signing_key = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
-
-	auto _sign = Crypto::sign(signing_key, string_to_sign);
+	auto _sign = Crypto::sign(signingKey, stringToSign);
 	std::string signature = Crypto::hexDump(_sign);
 	std::transform(signature.begin(), signature.end(), signature.begin(), ::tolower);
 
 
-	canonical_querystring += "&X-Amz-Signature=" + signature;
-	std::string request_url = this->_endpoint + "?" + canonical_querystring;
+	canonicalQuerystring += "&X-Amz-Signature=" + signature;
+	std::string requestUrl = this->_endpoint + "?" + canonicalQuerystring;
 
 	std::stringstream ss;
-	Utils::executeRequest(request_url, ss);
+	Utils::executeRequest(requestUrl, ss);
 	std::string queueUrl = Utils::getQueueUrl(ss);
-	std::string canonicalUri = Utils::getQueueCanonicalUri(queueUrl);
+	canonicalUri = Utils::getQueueCanonicalUri(queueUrl);
 	const_cast<SQS*>(this)->_queueMap[queueName] = canonicalUri;
 	return std::move(canonicalUri);
 }
-
 
 #include <iostream>
 
@@ -96,5 +93,5 @@ int main() {
 	std::string secretID  = "XXX";
 	std::string region    = "eu-west-1";
 	SQS sqs(secretKey, secretID, region);
-	std::cout  << sqs.getQueue("queue-test") << std::endl;
+	std::cout  << sqs.getQueue("queue-test2") << std::endl;
 }
