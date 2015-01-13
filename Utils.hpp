@@ -51,6 +51,9 @@ namespace LIBAWS {
 	//return the current date such as YYYYMMDD
 	std::string getDatestamp(std::time_t &t);
 
+	std::string escape(std::string &url);
+	std::string unescape(std::string &url);
+
 
 		static void _sprintf(std::string &buffer, const char *str) {
 			while (*str) {

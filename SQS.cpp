@@ -27,6 +27,7 @@
 
 using namespace LIBAWS;
 
+
 SQS::SQS(const std::string & awsKeyID, const std::string& awsSecretKey, const std::string &region) : _awsKeyID(awsKeyID),
 _awsSecretKey(awsSecretKey), _method("GET"), _service("sqs"), _region(region){
 	this->_host = "sqs." + region + ".amazonaws.com";
@@ -86,6 +87,49 @@ const std::string &SQS::getQueue(const std::string &queueName, bool create) cons
 	return std::move(canonicalUri);
 }
 
+void SQS::sendMessage(const std::string &canonicalUri, const std::string &message) const {
+	std::string escapedMessage(message);
+	escapedMessage = Utils::escape(escapedMessage);
+	
+	std::time_t t = std::time(nullptr);
+	std::string amzDate =  Utils::getAmzDate(t); 
+	std::string datestamp = Utils::getDatestamp(t);
+	std::string canonicalHeaders = "host:" + this->_host + "\n";
+	std::string signedHeaders = "host";
+	std::string algorithm = "AWS4-HMAC-SHA256";
+	std::string credentialScope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
+
+	std::string canonicalQuerystring = "Action=SendMessage&MessageBody=" + escapedMessage; // TODO: verif queueName
+	canonicalQuerystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
+	std::string tmp = this->_awsKeyID + "/" + credentialScope;
+	canonicalQuerystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
+	canonicalQuerystring += "&X-Amz-Date=" + amzDate;
+	canonicalQuerystring += "&X-Amz-Expires=30";
+	canonicalQuerystring += "&X-Amz-SignedHeaders=" + signedHeaders;
+
+	std::string payloadHash = Crypto::shaDigest();
+
+	std::string canonicalRequest = this->_method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + payloadHash;
+
+	std::string stringToSign = algorithm + '\n' +  amzDate + '\n' +  credentialScope + '\n' +  Crypto::shaDigest(canonicalRequest);
+
+	std::array<byte, 32> signingKey = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
+
+	auto _sign = Crypto::sign(signingKey, stringToSign);
+	std::string signature = Crypto::hexDump(_sign);
+	std::transform(signature.begin(), signature.end(), signature.begin(), ::tolower);
+
+
+	canonicalQuerystring += "&X-Amz-Signature=" + signature;
+	std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
+
+	std::cout << requestUrl << std::endl;
+	std::stringstream ss;
+	Utils::executeRequest(requestUrl, ss);
+	std::cout << ss.str() << std::endl;
+}
+
+
 #include <iostream>
 
 int main() {
@@ -93,5 +137,7 @@ int main() {
 	std::string secretID  = "XXX";
 	std::string region    = "eu-west-1";
 	SQS sqs(secretKey, secretID, region);
-	std::cout  << sqs.getQueue("queue-test2") << std::endl;
+	std::string canonicalUri =  sqs.getQueue("queue-test2");
+	std::cout << "<<" << canonicalUri << std::endl;
+	sqs.sendMessage(canonicalUri, std::move("Coucou les copains"));
 }

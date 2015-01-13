@@ -186,7 +186,7 @@ std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex whe
   if (found == false){
     throw std::runtime_error("Can't find the canonical uri of the queue from[" + queueUrl + "]");
   }
-  return queueUrl.substr(idx + 1, queueUrl.size());
+  return queueUrl.substr(idx, queueUrl.size());
 }
 
 void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
@@ -204,5 +204,17 @@ void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
       error.print_traceback();
       // Note that the printing the stack will erase it
   }
+}
+
+static curl_easy _easy; //to use it to encode/decode stuff
+
+std::string Utils::escape(std::string &url) {
+    _easy.escape(url);
+    return url;
+}
+
+std::string Utils::unescape(std::string &url) {
+  _easy.unescape(url);
+  return url;
 }
 

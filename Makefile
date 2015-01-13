@@ -7,7 +7,7 @@ EXECUTABLE=a.out
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` libcurlcpp.a
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` libcurlcpp.a -g3
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@

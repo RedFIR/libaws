@@ -24,6 +24,7 @@
 #ifndef __LIB_AWS_SQS__HPP__
 #define __LIB_AWS_SQS__HPP__
 
+#include <ctime>
 #include <string>
 #include <sstream>
 #include <map>
@@ -39,9 +40,11 @@ namespace LIBAWS {
 		std::string _region;
 		std::string _endpoint;
 		std::map<std::string, std::string> _queueMap;
+
 	public:
 		SQS(const std::string& awsSecretKey, const std::string& awsSecretID, const std::string &region);
 		const std::string &getQueue(const std::string &queueName, bool create = true) const;
+		void sendMessage(const std::string &queueUri, const std::string &message) const;
 	};
 }
 
