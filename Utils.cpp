@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #include "Utils.hpp"
 #include "curl_easy.h"
 using curl::curl_easy;
@@ -98,6 +98,7 @@ void print_node(const xmlpp::Node* node, unsigned int indentation = 0)
   if(nodeText)
   {
     std::cout << indent << "text = \"" << nodeText->get_content() << "\"" << std::endl;
+        std::cout << "xpath" << nodeText->get_path() << std::endl;
   }
   else if(nodeComment)
   {
@@ -145,50 +146,63 @@ void print_node(const xmlpp::Node* node, unsigned int indentation = 0)
   }
 }
 
+std::string Utils::getQueueUrl(std::stringstream &ss) { //TODO check for memory leak
+    try {
+      xmlpp::DomParser parser;
+      if (false)
+        parser.set_validate();
+      if (false)
+        parser.set_throw_messages(false);
+      parser.set_substitute_entities(true);
+      parser.parse_stream(ss);
+      if(parser) {
+        for (auto node : parser.get_document()->get_root_node()->find("/*/*[1]/*/text()")) {
+          const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
+          if (nodeText == nullptr)
+            return "";
+          return nodeText->get_content();
+        }
+      }
+    }
+    catch(const std::exception& ex) {
+      std::cerr << "Exception caught: " << ex.what() << std::endl;
+    }
+    return "";
+}
 
 
+std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex when supported by the compiler
+  std::string tmp(queueUrl);
+  unsigned idx;
+  bool found = false;
 
-std::string Utils::executeRequest(const std::string &url) {
-	std::stringstream ss;
+  if ((idx = tmp.find_last_of("/")) !=  string::npos) {
+    tmp = tmp.substr(0, idx - 1);
+  }
+ if ((idx = tmp.find_last_of("/")) !=  string::npos) {
+    found = true;
+    tmp = tmp.substr(0, idx - 1);
+  }
+  if (found == false){
+    throw std::runtime_error("Can't find the canonical uri of the queue from[" + queueUrl + "]");
+  }
+  return queueUrl.substr(idx + 1, queueUrl.size());
+}
 
+void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
 	curl_writer writer(ss);
 	curl_easy easy(writer);
-   
-
-    easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
-    easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION,1L));
-    try {
-        easy.perform();
-    } catch (curl_easy_exception error) {
-        // If you want to get the entire error stack we can do:
-        vector<pair<string,string>> errors = error.what();
-        // Otherwise we could print the stack like this:
-        error.print_traceback();
-        // Note that the printing the stack will erase it
-    }
-
-	  try
-	  {
-	    xmlpp::DomParser parser;
-	    if (false)
-	      parser.set_validate();
-	    if (false)
-	      parser.set_throw_messages(false);
-	    //We can have the text resolved/unescaped automatically.
-	    parser.set_substitute_entities(true);
-	    parser.parse_stream(ss);
-	    if(parser)
-	    {
-	      //Walk the tree:
-	      const xmlpp::Node* pNode = parser.get_document()->get_root_node(); //deleted by DomParser.
-	      print_node(pNode);
-	    }
-	  }
-	  catch(const std::exception& ex)
-	  {
-	    std::cerr << "Exception caught: " << ex.what() << std::endl;
-	  }
-
-
-    return ss.str();
+  easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
+  easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION,1L));
+  try {
+      easy.perform();
+  } 
+  catch (curl_easy_exception error) {
+      // If you want to get the entire error stack we can do:
+      vector<pair<string,string>> errors = error.what();
+      // Otherwise we could print the stack like this:
+      error.print_traceback();
+      // Note that the printing the stack will erase it
+  }
 }
+

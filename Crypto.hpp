@@ -30,16 +30,17 @@ namespace LIBAWS {
 		using CryptoPP::HexEncoder;
 		using CryptoPP::HexDecoder;
 
+	// http://docs.aws.amazon.com/general/latest/gr/signature-v4-examples.html#signature-v4-examples-python
 	std::string hexDump(std::array<byte, 32> &mac);
 
 	std::array<byte, 32> sign(std::array<byte, 32> &key, const std::string &msg, size_t size = 32);
 
 	std::array<byte, 32> sign(const std::string &key, const std::string &msg, size_t size = 32);
 
-	std::string shaDigest(const std::string &key = "");
-
 	std::array<byte, 32> getSignatureKey(const std::string &key, const std::string &dateStamp, const std::string &regionName, const std::string &serviceName);
 
+	// Create payload hash (check aws api documentation)
+	std::string shaDigest(const std::string &key = "");
 
 
 	};

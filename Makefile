@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS= -c -Wall -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes
+CFLAGS= -c -Wall -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=a.out

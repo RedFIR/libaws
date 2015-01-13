@@ -80,7 +80,12 @@ const std::string &SQS::getQueue(const std::string &queueName, bool create) cons
 	canonical_querystring += "&X-Amz-Signature=" + signature;
 	std::string request_url = this->_endpoint + "?" + canonical_querystring;
 
-	Utils::executeRequest(request_url);
+	std::stringstream ss;
+	Utils::executeRequest(request_url, ss);
+	std::string queueUrl = Utils::getQueueUrl(ss);
+	std::string canonicalUri = Utils::getQueueCanonicalUri(queueUrl);
+	const_cast<SQS*>(this)->_queueMap[queueName] = canonicalUri;
+	return std::move(canonicalUri);
 }
 
 
@@ -91,5 +96,5 @@ int main() {
 	std::string secretID  = "XXX";
 	std::string region    = "eu-west-1";
 	SQS sqs(secretKey, secretID, region);
-	sqs.getQueue("queue-test");
+	std::cout  << sqs.getQueue("queue-test") << std::endl;
 }

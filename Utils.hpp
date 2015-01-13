@@ -34,11 +34,21 @@
 
 namespace LIBAWS {
 	namespace Utils {
-	std::string executeRequest(const std::string &url);
+	// call the url and put the body in the stringstream
+	void 		executeRequest(const std::string &url, std::stringstream &ss);
 
+	// return the queueUrl from the stringstream
+	std::string getQueueUrl(std::stringstream &ss);
 
+	// return the canonicalUri from the stringstream
+	std::string getQueueCanonicalUri(std::string &queueUrl);
+
+	// overload of std::replace in order to replace one character by a string
 	std::string replace(const std::string::iterator &begin, const std::string::iterator &end, const char from, const std::string &to);
+
+	// return the current date formated as Format date as YYYYMMDD'T'HHMMSS'Z'
 	std::string getAmzDate(std::time_t &t);
+	//return the current date such as YYYYMMDD
 	std::string getDatestamp(std::time_t &t);
 
 
