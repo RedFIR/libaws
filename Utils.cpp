@@ -1,0 +1,194 @@
+/*
+ * Copyright (c) 2014 Smyle SAS
+ * http: *www.deepomatic.com/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+ 
+#include "Utils.hpp"
+#include "curl_easy.h"
+using curl::curl_easy;
+
+using namespace LIBAWS;
+
+std::string Utils::replace(const std::string::iterator &begin, const std::string::iterator &end, const char from, const std::string &to){
+	std::string rep("");
+
+	for (auto it = begin; it != end;++it) {
+		if (*it != '/') {
+			rep += *it;
+		}
+		else {
+			rep += to;
+		}
+	}
+	return std::move(rep);
+}
+
+std::string Utils::getAmzDate(std::time_t &t) {
+      std::tm* now_tm = std::gmtime(&t);
+      char mbstr[100] = {0};
+
+      if (std::strftime(mbstr, sizeof(mbstr), "%Y%m%dT%H%M%SZ", now_tm)) {
+        return std::move(std::string(mbstr));
+     }
+     throw (std::runtime_error("strftime error"));
+}
+
+std::string Utils::getDatestamp(std::time_t &t) {
+      std::tm* now_tm = std::gmtime(&t);
+      char mbstr[100] = {0};
+
+      if (std::strftime(mbstr, sizeof(mbstr), "%Y%m%d", now_tm)) {
+        return std::move(std::string(mbstr));
+     }
+     throw (std::runtime_error("strftime error"));
+}
+
+
+
+#include <libxml++/libxml++.h>
+
+void print_node(const xmlpp::Node* node, unsigned int indentation = 0)
+{
+  const Glib::ustring indent(indentation, ' ');
+  std::cout << std::endl; //Separate nodes by an empty line.
+  
+  const xmlpp::ContentNode* nodeContent = dynamic_cast<const xmlpp::ContentNode*>(node);
+  const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node);
+  const xmlpp::CommentNode* nodeComment = dynamic_cast<const xmlpp::CommentNode*>(node);
+
+  if(nodeText && nodeText->is_white_space()) //Let's ignore the indenting - you don't always want to do this.
+    return;
+    
+  const Glib::ustring nodename = node->get_name();
+
+  if(!nodeText && !nodeComment && !nodename.empty()) //Let's not say "name: text".
+  {
+    const Glib::ustring namespace_prefix = node->get_namespace_prefix();
+
+    std::cout << indent << "Node name = ";
+    if(!namespace_prefix.empty())
+      std::cout << namespace_prefix << ":";
+    std::cout << nodename << std::endl;
+  }
+  else if(nodeText) //Let's say when it's text. - e.g. let's say what that white space is.
+  {
+    std::cout << indent << "Text Node" << std::endl;
+  }
+
+  //Treat the various node types differently: 
+  if(nodeText)
+  {
+    std::cout << indent << "text = \"" << nodeText->get_content() << "\"" << std::endl;
+  }
+  else if(nodeComment)
+  {
+    std::cout << indent << "comment = " << nodeComment->get_content() << std::endl;
+  }
+  else if(nodeContent)
+  {
+    std::cout << indent << "content = " << nodeContent->get_content() << std::endl;
+  }
+  else if(const xmlpp::Element* nodeElement = dynamic_cast<const xmlpp::Element*>(node))
+  {
+    //A normal Element node:
+
+    //line() works only for ElementNodes.
+    std::cout << indent << "     line = " << node->get_line() << std::endl;
+
+    //Print attributes:
+    const xmlpp::Element::AttributeList& attributes = nodeElement->get_attributes();
+    for(xmlpp::Element::AttributeList::const_iterator iter = attributes.begin(); iter != attributes.end(); ++iter)
+    {
+      const xmlpp::Attribute* attribute = *iter;
+      const Glib::ustring namespace_prefix = attribute->get_namespace_prefix();
+
+      std::cout << indent << "  Attribute ";
+      if(!namespace_prefix.empty())
+        std::cout << namespace_prefix  << ":";
+      std::cout << attribute->get_name() << " = " << attribute->get_value() << std::endl;
+    }
+
+    const xmlpp::Attribute* attribute = nodeElement->get_attribute("title");
+    if(attribute)
+    {
+      std::cout << indent << "title = " << attribute->get_value() << std::endl;
+    }
+  }
+  
+  if(!nodeContent)
+  {
+    //Recurse through child nodes:
+    xmlpp::Node::NodeList list = node->get_children();
+    for(xmlpp::Node::NodeList::iterator iter = list.begin(); iter != list.end(); ++iter)
+    {
+      print_node(*iter, indentation + 2); //recursive
+    }
+  }
+}
+
+
+
+
+std::string Utils::executeRequest(const std::string &url) {
+	std::stringstream ss;
+
+	curl_writer writer(ss);
+	curl_easy easy(writer);
+   
+
+    easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
+    easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION,1L));
+    try {
+        easy.perform();
+    } catch (curl_easy_exception error) {
+        // If you want to get the entire error stack we can do:
+        vector<pair<string,string>> errors = error.what();
+        // Otherwise we could print the stack like this:
+        error.print_traceback();
+        // Note that the printing the stack will erase it
+    }
+
+	  try
+	  {
+	    xmlpp::DomParser parser;
+	    if (false)
+	      parser.set_validate();
+	    if (false)
+	      parser.set_throw_messages(false);
+	    //We can have the text resolved/unescaped automatically.
+	    parser.set_substitute_entities(true);
+	    parser.parse_stream(ss);
+	    if(parser)
+	    {
+	      //Walk the tree:
+	      const xmlpp::Node* pNode = parser.get_document()->get_root_node(); //deleted by DomParser.
+	      print_node(pNode);
+	    }
+	  }
+	  catch(const std::exception& ex)
+	  {
+	    std::cerr << "Exception caught: " << ex.what() << std::endl;
+	  }
+
+
+    return ss.str();
+}
