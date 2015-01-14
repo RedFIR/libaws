@@ -1,8 +1,16 @@
+you need libcurl libcrypto++ libxml libxml++  (on ubuntu you have all the libs in the repository)
+make & make demo
+./demo
+
+
 `````c++
+#include <cstdlib>
+#include "SQS.hpp"
 int main() {
-    std::string secretKey = "XXX";
-    std::string secretID  = "XXX";
-    
+    std::string secretKey = std::getenv("AWS_SECRET_ACCESS_KEY");
+    std::string secretID  = std::getenv("AWS_SECRET_KEY_ID");
+
+
     std::string region    = "eu-west-1";
     SQS sqs(secretID, secretKey, region);
     auto q =  sqs.getQueue("queue-test2");

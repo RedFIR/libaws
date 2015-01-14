@@ -168,28 +168,28 @@ const SQSQueue& SQS::getQueue(const std::string &queueName, bool create) const {
 	return *newQueue;
 }
 
-int main() {
-	std::string secretKey = "XXX";
-	std::string secretID  = "XXX";
+// int main() {
+// 	std::string secretKey = "XXX";
+// 	std::string secretID  = "XXX";
 
-	std::string region    = "eu-west-1";
-	SQS sqs(secretID, secretKey, region);
-	auto q =  sqs.getQueue("queue-test2");
-	q.setVisibility(5);
-	std::vector<std::string> batchMessages;
+// 	std::string region    = "eu-west-1";
+// 	SQS sqs(secretID, secretKey, region);
+// 	auto q =  sqs.getQueue("queue-test2");
+// 	q.setVisibility(5);
+// 	std::vector<std::string> batchMessages;
 
-	for (int i = 0; i < 45; i++){
-		batchMessages.push_back("Message number" + std::to_string(i));
-	}
-	q.sendMessageBatch(batchMessages);
-	batchMessages.clear();
-	std::cout << q.size() << std::endl;
-	while (q.size() > 10) {
-		for (auto msg : q.recvMessages(10)) {
-			std::cout << msg.first << std::endl;
-			batchMessages.push_back(msg.second);
-		}
-		q.deleteMessageBatch(batchMessages);
-	}
-	q.purge();
-}
+// 	for (int i = 0; i < 45; i++){
+// 		batchMessages.push_back("Message number" + std::to_string(i));
+// 	}
+// 	q.sendMessageBatch(batchMessages);
+// 	batchMessages.clear();
+// 	std::cout << q.size() << std::endl;
+// 	while (q.size() > 10) {
+// 		for (auto msg : q.recvMessages(10)) {
+// 			std::cout << msg.first << std::endl;
+// 			batchMessages.push_back(msg.second);
+// 		}
+// 		q.deleteMessageBatch(batchMessages);
+// 	}
+// 	q.purge();
+// }

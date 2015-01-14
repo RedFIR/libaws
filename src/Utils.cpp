@@ -24,7 +24,7 @@
 
 #include "Utils.hpp"
 #include "Crypto.hpp"
-#include "curl_easy.h"
+#include "curlIncludes/curl_easy.h"
 using curl::curl_easy;
 
 using namespace LIBAWS;

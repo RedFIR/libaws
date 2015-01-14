@@ -1,30 +1,20 @@
 CC=g++
-CFLAGS= -c -Wall -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3
-SOURCES=$(wildcard *.cpp)
+CFLAGS= -c -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3 -Iheaders/
+SOURCES=$(wildcard src/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=a.out
+EXECUTABLE=lib/libaws.a
 
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` libcurlcpp.a -g3
+	ar crf $(EXECUTABLE) $(OBJECTS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 
+demo:
+	g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
+
 clean:
 	rm -rf `find . -name "*.o"`
-
-
-
-# CFLAGS = -g -Wall
-# SRC = SQS.cpp \
-# 	  Utils.cpp
-# OBJ = $(src:.cpp=.o)
-
-# LDLIBS=-lcryptopp -lcurl -I/usr/include/crypto++/ -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` libcurlcpp.a -IcurlIncludes
-# NAME = a.out
-
-# all: $(OBJ)
-# 	g++ -std=c++0x $(OBJ) $(LDLIBS) -o $(NAME)
 
