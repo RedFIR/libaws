@@ -31,27 +31,37 @@
 #include <list>
 #include <utility>
 #include <algorithm> // replace
+#include <memory>
+#include "Utils.hpp"
 
 namespace LIBAWS {
-	class	SQS {
-		std::string _awsKeyID;
-		std::string _awsSecretKey;
-		std::string _method;
-		std::string _service;
-		std::string _host;
-		std::string _region;
-		std::string _endpoint;
-		std::map<std::string, std::string> _queueMap;
+	class SQS;
+
+	class SQSQueue{
+		const SQS*  _sqs;
+		std::string _queueUrl;
+		std::string _canonicalUri;
+		int			_visibility;
+	public:
+		friend SQS;
+		SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility = 300);
+		void setVisibility(int visibility) { _visibility = visibility; }
+		int  getVisibility() const { return _visibility; }
+
+		void sendMessage(const std::string &message, const std::string &optionalParameter = "") const;
+		std::list<std::pair<std::string, std::string>> recvMessages(int maxNumberOfMessages) const;
+		void deleteMessage(std::string &receiptHandle) const;
+		void purge() const;
+	};
+
+
+	class	SQS : public Utils::AWSAuth {
+		std::map<std::string, std::shared_ptr<SQSQueue>>    _queueMap;
 
 	public:
 		SQS(const std::string& awsSecretKey, const std::string& awsSecretID, const std::string &region);
-		const std::string &getQueue(const std::string &queueName, bool create = true) const;
-		void sendMessage(const std::string &queueUri, const std::string &message) const;
-
-		// TODO : maybe check the time when the message is downloaded and compare it with the time when the message is "used"
-		std::list<std::pair<std::string, std::string>> recvMessages(const std::string &canonicalUri, int maxNumberOfMessages = 10, int visibilityTimeout = 300) const; 
-
-		void deleteMessage(const std::string &canonicalUri, std::string &receiptHandle) const;
+		const SQSQueue& getQueue(const std::string &queueName, bool create = true) const;
+		//void deleteMessage(const std::string &canonicalUri, std::string &receiptHandle) const;
 	};
 }
 

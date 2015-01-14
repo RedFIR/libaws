@@ -23,10 +23,54 @@
  */
 
 #include "Utils.hpp"
+#include "Crypto.hpp"
 #include "curl_easy.h"
 using curl::curl_easy;
 
 using namespace LIBAWS;
+
+
+std::string Utils::AWSAuth::generateUrl(const std::string &canonicalUri, const std::string &action, const std::string &params) const {
+  std::time_t t = std::time(nullptr);
+  std::string amzDate =  Utils::getAmzDate(t); 
+  std::string datestamp = Utils::getDatestamp(t);
+
+  std::string canonicalHeaders = "host:" + this->_host + "\n";
+  std::string signedHeaders = "host";
+
+  std::string algorithm = "AWS4-HMAC-SHA256";
+  std::string credentialScope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
+
+  std::string canonicalQuerystring = "Action=" + action + params; // TODO: verif queueName
+  canonicalQuerystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
+  std::string tmp = this->_awsKeyID + "/" + credentialScope;
+  canonicalQuerystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
+  canonicalQuerystring += "&X-Amz-Date=" + amzDate;
+  canonicalQuerystring += "&X-Amz-Expires=30";
+  canonicalQuerystring += "&X-Amz-SignedHeaders=" + signedHeaders;
+
+  std::string payloadHash = Crypto::shaDigest();
+
+  std::string canonicalRequest = this->_method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + payloadHash;
+
+  std::string stringToSign = algorithm + '\n' +  amzDate + '\n' +  credentialScope + '\n' +  Crypto::shaDigest(canonicalRequest);
+
+  std::array<byte, 32> signingKey = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
+
+  auto _sign = Crypto::sign(signingKey, stringToSign);
+  std::string signature = Crypto::hexDump(_sign);
+  std::transform(signature.begin(), signature.end(), signature.begin(), ::tolower);
+
+
+  canonicalQuerystring += "&X-Amz-Signature=" + signature;
+  std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
+
+  #ifdef DEBUG
+    std::cout << requestUrl << std::endl;
+  #endif
+
+  return std::move(requestUrl);
+}
 
 std::string Utils::replace(const std::string::iterator &begin, const std::string::iterator &end, const char from, const std::string &to){
 	std::string rep("");
@@ -191,6 +235,8 @@ std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex whe
 
 std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::stringstream &ss) {
      std::list<std::pair<std::string, std::string>> rep;
+
+     // TODO: read the doc of libxml++ ^^'
       xmlpp::DomParser parser;
       if (false)
         parser.set_validate();
@@ -200,7 +246,7 @@ std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::string
       parser.parse_stream(ss);
       if(parser) {
         auto root_node = parser.get_document()->get_root_node();
-          for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 10; i++) {
           auto nodeMsg = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[1]/text()", i));
           auto nodeHandle = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[3]/text()", i));
           if (nodeMsg.size() == 0 || nodeHandle.size() == 0) {
@@ -208,12 +254,11 @@ std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::string
           }
           const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(nodeMsg[0]);
           const xmlpp::TextNode* nodeText2 = dynamic_cast<const xmlpp::TextNode*>(nodeHandle[0]);
-
-          if (nodeText == nullptr || nodeText2 == nullptr){
+          if (nodeText == nullptr || nodeText2 == nullptr) {
             break;
           }
           rep.push_back(std::make_pair(nodeText->get_content(), nodeText2->get_content()));
-        }
+      }
     }
   return std::move(rep);
 }

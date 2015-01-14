@@ -34,9 +34,24 @@
 #include <stdexcept>
 #include <utility>
 
+#define DEBUG // TODO REMOVE
 
 namespace LIBAWS {
 	namespace Utils {
+
+	class AWSAuth{
+	protected:
+		std::string _awsKeyID;
+		std::string _awsSecretKey;
+		std::string _method;
+		std::string _service;
+		std::string _host;
+		std::string _region;
+		std::string _endpoint;
+	public:
+		virtual std::string generateUrl(const std::string &canonicalUri, const std::string &action, const std::string &params = "") const;
+	};
+
 	// call the url and put the body in the stringstream
 	void 		executeRequest(const std::string &url, std::stringstream &ss);
 
