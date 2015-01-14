@@ -8,8 +8,6 @@ If you want to know a bit more about AWS, you should go on the official website 
 Compile and link
 ================
 
-Standalone
-----------
 On ubuntu (14.04)
 ```
 sudo apt-get install libcurl4-openssl-dev libxml++2.6-dev libcrypto++-dev
@@ -60,5 +58,5 @@ int main() {
 
 Warning
 =======
-The error handling is very limited (especially with the aws response)
+The error handling is very limited (especially for the aws responses)
 Howewer you can compile with `-DDEBUG` in order to see the url and try them in your browser
