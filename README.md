@@ -1,7 +1,7 @@
 LibAWS
 =======
 
-An object-oriented C++ wrapper for AWS (currently only SQS)
+An object-oriented C++(11) wrapper for AWS (currently only SQS)
 
 If you want to know a bit more about AWS, you should go on the official website and read about the api: http://aws.amazon.com/fr/documentation/
 
@@ -19,6 +19,13 @@ EXPORT AWS_SECRET_KEY_ID=""
 EXPORT AWS_SECRET_ACCESS_KEY=""
 ./demo
 ```
+
+```
+g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
+```
+
+Example
+================
 
 `````c++
 #include <cstdlib>
