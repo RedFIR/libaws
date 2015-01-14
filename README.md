@@ -1,7 +1,24 @@
-you need libcurl libcrypto++ libxml libxml++  (on ubuntu you have all the libs in the repository)
-make & make demo
-./demo
+LibAWS
+=======
 
+An object-oriented C++ wrapper for AWS (currently only SQS)
+
+If you want to know a bit more about AWS, you should go on the official website and read about the api: http://aws.amazon.com/fr/documentation/
+
+Compile and link
+================
+
+Standalone
+----------
+On ubuntu (14.04)
+```
+sudo apt-get install libcurl4-openssl-dev libxml++2.6-dev libcrypto++-dev
+make
+make demo
+EXPORT AWS_SECRET_KEY_ID=""
+EXPORT AWS_SECRET_ACCESS_KEY=""
+./demo
+```
 
 `````c++
 #include <cstdlib>
