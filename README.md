@@ -28,6 +28,8 @@ Example
 `````c++
 #include <cstdlib>
 #include "SQS.hpp"
+
+
 int main() {
     std::string secretKey = std::getenv("AWS_SECRET_ACCESS_KEY");
     std::string secretID  = std::getenv("AWS_SECRET_KEY_ID");
