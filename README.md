@@ -25,7 +25,7 @@ g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl -std=c++0x `pkg
 ```
 
 Example
-================
+=======
 
 `````c++
 #include <cstdlib>
@@ -57,3 +57,8 @@ int main() {
     q.purge();
 }
 `````
+
+Warning
+=======
+The error handling is very limited (especially with the aws response)
+Howewer you can compile with `-DDEBUG` in order to see the url and try them in your browser

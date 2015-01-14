@@ -301,7 +301,7 @@ void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
   }
 }
 
-static curl_easy _easy; //to use it to encode/decode stuff
+static curl_easy _easy; //used to encode/decode stuff
 
 std::string Utils::escape(std::string &url) {
     _easy.escape(url);

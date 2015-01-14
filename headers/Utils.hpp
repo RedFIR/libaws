@@ -34,7 +34,7 @@
 #include <stdexcept>
 #include <utility>
 
-#define DEBUG // TODO REMOVE
+//#define DEBUG // TODO REMOVE
 
 namespace LIBAWS {
 	namespace Utils {
