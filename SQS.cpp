@@ -22,8 +22,7 @@
  *
  */
 #include "SQS.hpp"
-#include "Utils.hpp"
-#include "Crypto.hpp"
+#include <cassert>
 
 using namespace LIBAWS;
 
@@ -45,6 +44,9 @@ void SQSQueue::sendMessage(const std::string &message, const std::string &option
 	std::string messageCpy(message);
 
 	std::string param = "&MessageBody=" + Utils::escape(messageCpy) + optionalParameter;
+	if (param.size() > (262000 + 13 + optionalParameter.size())) {
+		throw (std::runtime_error("The maximum allowed individual message size is 256 KB"));
+	}
 	
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("SendMessage"), param);
 
@@ -77,6 +79,69 @@ void SQSQueue::deleteMessage(std::string &receiptHandle) const {
 
 void SQSQueue::purge() const {
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("PurgeQueue"));
+	
+	std::stringstream ss;
+	Utils::executeRequest(requestUrl, ss);
+}
+
+
+int  SQSQueue::size() const {
+	std::string param = "&Action=GetQueueAttributes&AttributeName.1=ApproximateNumberOfMessages";
+	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("GetQueueAttributes"), param);
+
+	std::stringstream ss;
+	Utils::executeRequest(requestUrl, ss);
+	return Utils::getQueueSize(ss);	
+}
+
+void SQSQueue::sendMessageBatch(std::vector<std::string> &messageList) const {
+	std::stringstream ss;
+	std::string requestUrl; 
+	std::string param;
+	unsigned int j;
+
+	for (unsigned int i = 0; i < messageList.size();) {
+		param = "";
+		unsigned totalSize = 0;
+		for (j = 0; j < 9 && j + i < messageList.size();j++){
+			std::string msg = messageList[i + j];
+			msg = Utils::escape(msg);
+			totalSize += msg.size();
+			param += Utils::sprintf("&SendMessageBatchRequestEntry.%.Id=msg_00%&SendMessageBatchRequestEntry.%.MessageBody=%", j + 1, j + 1, j + 1, msg);
+		}
+		i += j;
+		if (totalSize > 262000) { //real value is 262,144 bytes but let's not push it to the limit
+			throw (std::runtime_error("The sum of all a batch's individual message lengths is above 256 KB"));
+		}
+		requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("SendMessageBatch"), param);
+		Utils::executeRequest(requestUrl, ss);
+	}
+
+}
+
+void SQSQueue::deleteMessageBatch(std::vector<std::string> &messageList) const {
+	std::stringstream ss;
+	std::string requestUrl;
+	std::string param;
+	unsigned int j;
+
+	for (unsigned int i = 0; i < messageList.size();) {
+		param = "";
+		unsigned totalSize = 0;
+		for (j = 0; j < 9 && j + i < messageList.size();j++){
+			std::string msg = messageList[i + j];
+			msg = Utils::escape(msg);
+			totalSize += msg.size();
+			param += Utils::sprintf("&DeleteMessageBatchRequestEntry.%.Id=msg%&DeleteMessageBatchRequestEntry.%.ReceiptHandle=%", j + 1, j + 1, j + 1, msg);
+		}
+		i += j;
+		if (totalSize > 262000) { //real value is 262,144 bytes but let's not push it to the limit
+			throw (std::runtime_error("The sum of all a batch's individual message lengths is above 256 KB"));
+		}
+		requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("DeleteMessageBatch"), param);
+		Utils::executeRequest(requestUrl, ss);
+	}
+
 }
 
 const SQSQueue& SQS::getQueue(const std::string &queueName, bool create) const {
@@ -103,8 +168,6 @@ const SQSQueue& SQS::getQueue(const std::string &queueName, bool create) const {
 	return *newQueue;
 }
 
-#include <iostream>
-
 int main() {
 	std::string secretKey = "XXX";
 	std::string secretID  = "XXX";
@@ -113,9 +176,20 @@ int main() {
 	SQS sqs(secretID, secretKey, region);
 	auto q =  sqs.getQueue("queue-test2");
 	q.setVisibility(5);
-	for (auto msg : q.recvMessages(3)) {
-		std::cout << msg.first << std::endl;
-		q.deleteMessage(msg.second);
+	std::vector<std::string> batchMessages;
+
+	for (int i = 0; i < 45; i++){
+		batchMessages.push_back("Message number" + std::to_string(i));
+	}
+	q.sendMessageBatch(batchMessages);
+	batchMessages.clear();
+	std::cout << q.size() << std::endl;
+	while (q.size() > 10) {
+		for (auto msg : q.recvMessages(10)) {
+			std::cout << msg.first << std::endl;
+			batchMessages.push_back(msg.second);
+		}
+		q.deleteMessageBatch(batchMessages);
 	}
 	q.purge();
 }

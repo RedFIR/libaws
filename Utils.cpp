@@ -237,30 +237,50 @@ std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::string
      std::list<std::pair<std::string, std::string>> rep;
 
      // TODO: read the doc of libxml++ ^^'
-      xmlpp::DomParser parser;
-      if (false)
-        parser.set_validate();
-      if (false)
-        parser.set_throw_messages(false);
-      parser.set_substitute_entities(true);
-      parser.parse_stream(ss);
-      if(parser) {
-        auto root_node = parser.get_document()->get_root_node();
-        for (int i = 1; i <= 10; i++) {
-          auto nodeMsg = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[1]/text()", i));
-          auto nodeHandle = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[3]/text()", i));
-          if (nodeMsg.size() == 0 || nodeHandle.size() == 0) {
-            break;
-          }
-          const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(nodeMsg[0]);
-          const xmlpp::TextNode* nodeText2 = dynamic_cast<const xmlpp::TextNode*>(nodeHandle[0]);
-          if (nodeText == nullptr || nodeText2 == nullptr) {
-            break;
-          }
-          rep.push_back(std::make_pair(nodeText->get_content(), nodeText2->get_content()));
+  xmlpp::DomParser parser;
+  if (false)
+    parser.set_validate();
+  if (false)
+    parser.set_throw_messages(false);
+  parser.set_substitute_entities(true);
+  parser.parse_stream(ss);
+  if(parser) {
+    auto root_node = parser.get_document()->get_root_node();
+    for (int i = 1; i <= 10; i++) {
+      auto nodeMsg = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[1]/text()", i));
+      auto nodeHandle = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[3]/text()", i));
+      if (nodeMsg.size() == 0 || nodeHandle.size() == 0) {
+        break;
+      }
+      const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(nodeMsg[0]);
+      const xmlpp::TextNode* nodeText2 = dynamic_cast<const xmlpp::TextNode*>(nodeHandle[0]);
+      if (nodeText == nullptr || nodeText2 == nullptr) {
+        break;
+      }
+      rep.push_back(std::make_pair(nodeText->get_content(), nodeText2->get_content()));
+    }
+  }
+  return std::move(rep);
+}
+
+int Utils::getQueueSize(std::stringstream &ss) {
+  xmlpp::DomParser parser;
+  if (false)
+    parser.set_validate();
+  if (false)
+    parser.set_throw_messages(false);
+  parser.set_substitute_entities(true);
+  parser.parse_stream(ss);
+  if(parser) {
+    auto node = parser.get_document()->get_root_node()->find("/*/*[1]/*/*[2]/text()");
+    if (node.size() > 0) {
+      const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(node[0]);
+      if (nodeText != nullptr) {
+        return std::stoi(nodeText->get_content());
       }
     }
-  return std::move(rep);
+  }
+  return -1;
 }
 
 

@@ -72,6 +72,10 @@ namespace LIBAWS {
 	//return the current date such as YYYYMMDD
 	std::string getDatestamp(std::time_t &t);
 
+	// return the ApproximateNumberOfMessages in the queue (return -1 if fail)
+	int getQueueSize(std::stringstream &ss);
+
+
 	std::string escape(std::string &url);
 	std::string unescape(std::string &url);
 

@@ -52,6 +52,12 @@ namespace LIBAWS {
 		std::list<std::pair<std::string, std::string>> recvMessages(int maxNumberOfMessages) const;
 		void deleteMessage(std::string &receiptHandle) const;
 		void purge() const;
+		int  size() const;
+
+		// Will throw an exception if the sum of all a batch's (10maximum) individual message lengths) is above 256kb
+		void sendMessageBatch(std::vector<std::string> &messageList) const;
+		void deleteMessageBatch(std::vector<std::string> &messageList) const;
+
 	};
 
 
