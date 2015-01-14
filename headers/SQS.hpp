@@ -38,10 +38,10 @@ namespace LIBAWS {
 	class SQS;
 
 	class SQSQueue{
-		const SQS*  _sqs;
-		std::string _queueUrl;
-		std::string _canonicalUri;
-		int			_visibility;
+		const SQS*    _sqs;
+		std::string   _queueUrl;
+		std::string   _canonicalUri;
+		int           _visibility;
 	public:
 		friend SQS;
 		SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility = 300);
