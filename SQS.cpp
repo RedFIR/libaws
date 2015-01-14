@@ -122,13 +122,53 @@ void SQS::sendMessage(const std::string &canonicalUri, const std::string &messag
 
 	canonicalQuerystring += "&X-Amz-Signature=" + signature;
 	std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
+	std::stringstream ss;
+	Utils::executeRequest(requestUrl, ss);
+}
+
+
+std::list<std::pair<std::string, std::string>> SQS::recvMessages(const std::string &canonicalUri, int maxNumberOfMessages, int visibilityTimeout) const {
+	// Check parameters
+	assert(!(maxNumberOfMessages < 1 || maxNumberOfMessages > 10));
+
+	std::time_t t = std::time(nullptr);
+	std::string amzDate =  Utils::getAmzDate(t); 
+	std::string datestamp = Utils::getDatestamp(t);
+	std::string canonicalHeaders = "host:" + this->_host + "\n";
+	std::string signedHeaders = "host";
+	std::string algorithm = "AWS4-HMAC-SHA256";
+	std::string credentialScope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
+
+	std::string canonicalQuerystring = Utils::sprintf("Action=ReceiveMessage&MaxNumberOfMessages=%&VisibilityTimeout=%", maxNumberOfMessages, visibilityTimeout); // TODO: verif queueName
+	canonicalQuerystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
+	std::string tmp = this->_awsKeyID + "/" + credentialScope;
+	canonicalQuerystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
+	canonicalQuerystring += "&X-Amz-Date=" + amzDate;
+	canonicalQuerystring += "&X-Amz-Expires=30";
+	canonicalQuerystring += "&X-Amz-SignedHeaders=" + signedHeaders;
+
+	std::string payloadHash = Crypto::shaDigest();
+
+	std::string canonicalRequest = this->_method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + payloadHash;
+
+	std::string stringToSign = algorithm + '\n' +  amzDate + '\n' +  credentialScope + '\n' +  Crypto::shaDigest(canonicalRequest);
+
+	std::array<byte, 32> signingKey = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
+
+	auto _sign = Crypto::sign(signingKey, stringToSign);
+	std::string signature = Crypto::hexDump(_sign);
+	std::transform(signature.begin(), signature.end(), signature.begin(), ::tolower);
+
+
+	canonicalQuerystring += "&X-Amz-Signature=" + signature;
+	std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
 
 	std::cout << requestUrl << std::endl;
 	std::stringstream ss;
 	Utils::executeRequest(requestUrl, ss);
-	std::cout << ss.str() << std::endl;
+	std::list<std::pair<std::string, std::string>> rep = Utils::getMessagesLst(ss);
+	return std::move(rep);
 }
-
 
 #include <iostream>
 
@@ -138,6 +178,8 @@ int main() {
 	std::string region    = "eu-west-1";
 	SQS sqs(secretKey, secretID, region);
 	std::string canonicalUri =  sqs.getQueue("queue-test2");
-	std::cout << "<<" << canonicalUri << std::endl;
-	sqs.sendMessage(canonicalUri, std::move("Coucou les copains"));
+	for (auto msg : sqs.recvMessages(canonicalUri)) {
+		std::cout << msg.first << ":" << msg.second << std::endl;
+	}
+
 }

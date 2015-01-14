@@ -29,8 +29,11 @@
 #include <ctime>
 #include <sstream>
 #include <array>
+#include <list>
 #include <cstring>
 #include <stdexcept>
+#include <utility>
+
 
 namespace LIBAWS {
 	namespace Utils {
@@ -42,6 +45,9 @@ namespace LIBAWS {
 
 	// return the canonicalUri from the stringstream
 	std::string getQueueCanonicalUri(std::string &queueUrl);
+
+	// return a list of messages from the strinstream
+	std::list<std::pair<std::string, std::string>> getMessagesLst(std::stringstream &ss);
 
 	// overload of std::replace in order to replace one character by a string
 	std::string replace(const std::string::iterator &begin, const std::string::iterator &end, const char from, const std::string &to);

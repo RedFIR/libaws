@@ -189,6 +189,36 @@ std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex whe
   return queueUrl.substr(idx, queueUrl.size());
 }
 
+std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::stringstream &ss) {
+     std::list<std::pair<std::string, std::string>> rep;
+      xmlpp::DomParser parser;
+      if (false)
+        parser.set_validate();
+      if (false)
+        parser.set_throw_messages(false);
+      parser.set_substitute_entities(true);
+      parser.parse_stream(ss);
+      if(parser) {
+        auto root_node = parser.get_document()->get_root_node();
+        for (int i = 1; i <= 10; i++) {
+          auto nodeMsg = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[1]/text()", i));
+          auto nodeHandle = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[3]/text()", i));
+          if (nodeMsg.size() == 0 || nodeHandle.size() == 0) {
+            break;
+          }
+          const xmlpp::TextNode* nodeText = dynamic_cast<const xmlpp::TextNode*>(nodeMsg[0]);
+          const xmlpp::TextNode* nodeText2 = dynamic_cast<const xmlpp::TextNode*>(nodeHandle[0]);
+
+          if (nodeText == nullptr || nodeText2 == nullptr){
+            break;
+          }
+          rep.push_back(std::make_pair(nodeText->get_content(), nodeText2->get_content()));
+        }
+    }
+  return std::move(rep);
+}
+
+
 void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
 	curl_writer writer(ss);
 	curl_easy easy(writer);
