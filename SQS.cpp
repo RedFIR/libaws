@@ -170,6 +170,44 @@ std::list<std::pair<std::string, std::string>> SQS::recvMessages(const std::stri
 	return std::move(rep);
 }
 
+void SQS::deleteMessage(const std::string &canonicalUri, std::string &receiptHandle) const {
+	std::time_t t = std::time(nullptr);
+	std::string amzDate =  Utils::getAmzDate(t); 
+	std::string datestamp = Utils::getDatestamp(t);
+	std::string canonicalHeaders = "host:" + this->_host + "\n";
+	std::string signedHeaders = "host";
+	std::string algorithm = "AWS4-HMAC-SHA256";
+	std::string credentialScope = datestamp + "/" + this->_region + "/" + this->_service + "/" + "aws4_request";
+
+	std::string canonicalQuerystring = "Action=DeleteMessage&ReceiptHandle=" + Utils::escape(receiptHandle);//Utils::sprintf("Action=ReceiveMessage&MaxNumberOfMessages=%&VisibilityTimeout=%", maxNumberOfMessages, visibilityTimeout); // TODO: verif queueName
+	canonicalQuerystring += "&X-Amz-Algorithm=AWS4-HMAC-SHA256";
+	std::string tmp = this->_awsKeyID + "/" + credentialScope;
+	canonicalQuerystring += "&X-Amz-Credential=" + Utils::replace(tmp.begin(), tmp.end(), '/', "%2F"); //urllib.quote_plus
+	canonicalQuerystring += "&X-Amz-Date=" + amzDate;
+	canonicalQuerystring += "&X-Amz-Expires=30";
+	canonicalQuerystring += "&X-Amz-SignedHeaders=" + signedHeaders;
+
+	std::string payloadHash = Crypto::shaDigest();
+
+	std::string canonicalRequest = this->_method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + payloadHash;
+
+	std::string stringToSign = algorithm + '\n' +  amzDate + '\n' +  credentialScope + '\n' +  Crypto::shaDigest(canonicalRequest);
+
+	std::array<byte, 32> signingKey = Crypto::getSignatureKey(this->_awsSecretKey, datestamp, this->_region, this->_service);
+
+	auto _sign = Crypto::sign(signingKey, stringToSign);
+	std::string signature = Crypto::hexDump(_sign);
+	std::transform(signature.begin(), signature.end(), signature.begin(), ::tolower);
+
+
+	canonicalQuerystring += "&X-Amz-Signature=" + signature;
+	std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
+
+	std::stringstream ss;
+	Utils::executeRequest(requestUrl, ss);
+}
+
+
 #include <iostream>
 
 int main() {
@@ -178,8 +216,7 @@ int main() {
 	std::string region    = "eu-west-1";
 	SQS sqs(secretKey, secretID, region);
 	std::string canonicalUri =  sqs.getQueue("queue-test2");
-	for (auto msg : sqs.recvMessages(canonicalUri)) {
-		std::cout << msg.first << ":" << msg.second << std::endl;
-	}
+	auto lst = sqs.recvMessages(canonicalUri, 2);
 
+	sqs.deleteMessage(canonicalUri, lst.front().second);
 }

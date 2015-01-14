@@ -47,7 +47,11 @@ namespace LIBAWS {
 		SQS(const std::string& awsSecretKey, const std::string& awsSecretID, const std::string &region);
 		const std::string &getQueue(const std::string &queueName, bool create = true) const;
 		void sendMessage(const std::string &queueUri, const std::string &message) const;
-		std::list<std::pair<std::string, std::string>> recvMessages(const std::string &canonicalUri, int maxNumberOfMessages = 10, int visibilityTimeout = 15) const;
+
+		// TODO : maybe check the time when the message is downloaded and compare it with the time when the message is "used"
+		std::list<std::pair<std::string, std::string>> recvMessages(const std::string &canonicalUri, int maxNumberOfMessages = 10, int visibilityTimeout = 300) const; 
+
+		void deleteMessage(const std::string &canonicalUri, std::string &receiptHandle) const;
 	};
 }
 

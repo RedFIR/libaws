@@ -186,7 +186,7 @@ std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex whe
   if (found == false){
     throw std::runtime_error("Can't find the canonical uri of the queue from[" + queueUrl + "]");
   }
-  return queueUrl.substr(idx, queueUrl.size());
+  return queueUrl.substr(idx, queueUrl.size()) + "/";
 }
 
 std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::stringstream &ss) {
@@ -200,7 +200,7 @@ std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::string
       parser.parse_stream(ss);
       if(parser) {
         auto root_node = parser.get_document()->get_root_node();
-        for (int i = 1; i <= 10; i++) {
+          for (int i = 1; i <= 10; i++) {
           auto nodeMsg = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[1]/text()", i));
           auto nodeHandle = root_node->find(Utils::sprintf("/*/*[1]/*[%]/*[3]/text()", i));
           if (nodeMsg.size() == 0 || nodeHandle.size() == 0) {
