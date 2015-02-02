@@ -12,7 +12,7 @@ int main() {
 	auto q =  sqs.getQueue("queue-test2");
 	q.setVisibility(5);
 	std::vector<std::string> batchMessages;
-
+	std::cout << "ici" << std::endl;
 	for (int i = 0; i < 45; i++){
 		batchMessages.push_back("Message number" + std::to_string(i));
 	}
@@ -27,4 +27,6 @@ int main() {
 		q.deleteMessageBatch(batchMessages);
 	}
 	q.purge();
+
+	return (1);
 }

@@ -13,7 +13,8 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 demo:
-	g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
+	rm -f demo
+	g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
 
 clean:
 	rm -rf `find . -name "*.o"`
