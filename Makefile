@@ -20,3 +20,4 @@ clean:
 
 install:
 	sudo cp lib/lib*.a /usr/local/lib
+	sudo cp -r headers/ /usr/local/include/AWS/

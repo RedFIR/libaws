@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <iostream>
-#include "SQS.hpp"
+#include <AWS/SQS.hpp>
 
 using namespace LIBAWS;
 
