@@ -13,9 +13,10 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 demo:
-	rm -f demo
-	g++ example/example1.cpp lib/lib*.a -Iheaders/ -std=c++0x -lcurl `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
+	g++ example/example1.cpp -L/usr/local/lib -laws -lcurlcpp -Iheaders/ -std=c++0x -lcurl `pkg-config libxml++-2.6 --cflags --libs` -lcryptopp -o demo
 
 clean:
 	rm -rf `find . -name "*.o"`
 
+install:
+	sudo cp lib/lib*.a /usr/local/lib
