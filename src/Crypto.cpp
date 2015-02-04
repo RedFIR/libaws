@@ -25,6 +25,29 @@
 
 using namespace LIBAWS;
 
+
+std::string Crypto::base64Encode(const std::string &msg){
+	std::string encoded;
+
+	StringSource(reinterpret_cast<const byte*>(msg.data()), msg.size(), true,
+	new Base64Encoder(
+		new StringSink(encoded)
+		) 
+	);		
+	return encoded;
+}
+
+std::string Crypto::base64Decode(const std::string &msg){
+	std::string encoded;
+
+	StringSource(reinterpret_cast<const byte*>(msg.data()), msg.size(), true,
+	new Base64Decoder(
+		new StringSink(encoded)
+		) 
+	);		
+	return encoded;
+}
+
 std::string Crypto::hexDump(std::array<byte, 32> &mac) {
 	std::string encoded;
 

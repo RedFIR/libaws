@@ -257,7 +257,7 @@ std::list<std::pair<std::string, std::string>> Utils::getMessagesLst(std::string
       if (nodeText == nullptr || nodeText2 == nullptr) {
         break;
       }
-      rep.push_back(std::make_pair(nodeText->get_content(), nodeText2->get_content()));
+      rep.push_back(std::make_pair(Crypto::base64Decode(nodeText->get_content()), nodeText2->get_content()));
     }
   }
   return std::move(rep);

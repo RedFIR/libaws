@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <AWS/SQS.hpp>
+#include <random>
 
 using namespace LIBAWS;
 
@@ -21,7 +22,8 @@ int main() {
 	auto q =  sqs.getQueue("queue-test2");
 	q.setVisibility(30);
 	std::vector<std::string> batchMessages;
-	for (int i = 0; i < 45; i++){
+
+	for (int i = 0; i < 45; i++) {
 		batchMessages.push_back("Message number" + std::to_string(i));
 	}
 	q.sendMessageBatch(batchMessages);
@@ -32,8 +34,8 @@ int main() {
 			std::cout << msg.first << std::endl;
 			batchMessages.push_back(msg.second);
 		}
-		q.deleteMessageBatch(batchMessages);
 	}
+	q.deleteMessageBatch(batchMessages);
 	q.purge();
 
 	return (1);

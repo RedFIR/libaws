@@ -1,13 +1,13 @@
 CC=g++
-CFLAGS= -c -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3 -Iheaders/
+CFLAGS= -c -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3 -Iheaders/ -fPIC
 SOURCES=$(wildcard src/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=lib/libaws.a
+EXECUTABLE=lib/libaws.so
 
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	ar crf $(EXECUTABLE) $(OBJECTS)
+	gcc -shared -o $(EXECUTABLE) $(OBJECTS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
@@ -19,5 +19,5 @@ clean:
 	rm -rf `find . -name "*.o"`
 
 install:
-	sudo cp lib/lib*.a /usr/local/lib
+	sudo cp lib/lib* /usr/local/lib
 	sudo cp -r headers/ /usr/local/include/AWS/

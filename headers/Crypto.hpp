@@ -43,6 +43,7 @@
 namespace LIBAWS {
 	namespace Crypto {
 		using CryptoPP::Base64Encoder;
+		using CryptoPP::Base64Decoder;
 		using CryptoPP::HexEncoder;
 		using CryptoPP::HMAC;
 		using CryptoPP::SHA256;
@@ -61,6 +62,10 @@ namespace LIBAWS {
 	std::array<byte, 32> sign(const std::string &key, const std::string &msg, size_t size = 32);
 
 	std::array<byte, 32> getSignatureKey(const std::string &key, const std::string &dateStamp, const std::string &regionName, const std::string &serviceName);
+
+	std::string base64Encode(const std::string &msg);
+
+	std::string base64Decode(const std::string &msg);
 
 	// Create payload hash (check aws api documentation)
 	std::string shaDigest(const std::string &key = "");

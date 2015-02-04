@@ -22,6 +22,7 @@
  *
  */
 #include "SQS.hpp"
+#include "Crypto.hpp"
 #include <cassert>
 
 using namespace LIBAWS;
@@ -41,7 +42,7 @@ SQS::SQS(const std::string & awsKeyID, const std::string& awsSecretKey, const st
 }
 
 void SQSQueue::sendMessage(const std::string &message, const std::string &optionalParameter) const {
-	std::string messageCpy(message);
+	std::string messageCpy(Crypto::base64Encode(message));
 
 	std::string param = "&MessageBody=" + Utils::escape(messageCpy) + optionalParameter;
 	if (param.size() > (262000 + 13 + optionalParameter.size())) {
@@ -105,6 +106,7 @@ void SQSQueue::sendMessageBatch(std::vector<std::string> &messageList) const {
 		unsigned totalSize = 0;
 		for (j = 0; j < 9 && j + i < messageList.size();j++){
 			std::string msg = messageList[i + j];
+			msg = Crypto::base64Encode(msg);
 			msg = Utils::escape(msg);
 			totalSize += msg.size();
 			param += Utils::sprintf("&SendMessageBatchRequestEntry.%.Id=msg_00%&SendMessageBatchRequestEntry.%.MessageBody=%", j + 1, j + 1, j + 1, msg);
