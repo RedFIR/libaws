@@ -29,15 +29,14 @@
 
 
 #include <cryptopp/sha.h>
-#include <cryptopp/filters.h>
+//#include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
-#include "hmac.h"
-#include <openssl/hmac.h>
-#include <secblock.h>
-#include "filters.h"
-#include "hex.h"
-#include "base64.h"
-#include "hex.h"
+#include <cryptopp/hmac.h>
+//#include <openssl/hmac.h>
+//#include <secblock.h>
+//#include "filters.h"
+#include <cryptopp/base64.h>
+//#include "hex.h"
 
 
 namespace LIBAWS {
