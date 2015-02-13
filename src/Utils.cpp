@@ -217,7 +217,7 @@ std::string Utils::getQueueUrl(std::stringstream &ss) { //TODO check for memory 
 
 std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex when supported by the compiler
   std::string tmp(queueUrl);
-  unsigned idx;
+  unsigned long idx;
   bool found = false;
 
   if ((idx = tmp.find_last_of("/")) !=  string::npos) {

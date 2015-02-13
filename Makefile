@@ -1,5 +1,6 @@
 CC=g++
-CFLAGS= -c -std=c++0x -I/usr/include/crypto++/ -lcryptopp -lcurl -std=c++0x `pkg-config libxml++-2.6 --cflags --libs` -IcurlIncludes -g3 -Iheaders/ -fPIC
+CFLAGS= -c -std=c++0x -I/usr/include/crypto++/ `pkg-config libxml++-2.6 --cflags` -IcurlIncludes -g3 -Iheaders/ -fPIC
+LFLAGS= -lcryptopp -lcurl -lcurlcpp `pkg-config libxml++-2.6 --libs`
 SOURCES=$(wildcard src/*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=lib/libaws.so
@@ -7,7 +8,7 @@ EXECUTABLE=lib/libaws.so
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	gcc -shared -o $(EXECUTABLE) $(OBJECTS)
+	gcc -shared -o $(EXECUTABLE) $(OBJECTS) $(LFLAGS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
