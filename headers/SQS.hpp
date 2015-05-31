@@ -43,9 +43,11 @@ namespace LIBAWS {
 		std::string   _queueUrl;
 		std::string   _canonicalUri;
 		int           _visibility;
+		bool          _debugInfo;
+
 	public:
 		friend SQS;
-		SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility = 300);
+		SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility = 300, const bool debugInfo=false);
 		void setVisibility(int visibility) { _visibility = visibility; }
 		int  getVisibility() const { return _visibility; }
 
@@ -64,9 +66,10 @@ namespace LIBAWS {
 
 	class	SQS : public Utils::AWSAuth {
 		std::map<std::string, std::shared_ptr<SQSQueue>>    _queueMap;
+		bool _debugInfo;
 
 	public:
-		SQS(const std::string& awsSecretKey, const std::string& awsSecretID, const std::string &region);
+		SQS(const std::string& awsSecretKey, const std::string& awsSecretID, const std::string &region, const bool debugInfo=false);
 		const SQSQueue& getQueue(const std::string &queueName, bool create = true) const;
 		//void deleteMessage(const std::string &canonicalUri, std::string &receiptHandle) const;
 	};

@@ -28,10 +28,10 @@
 using namespace LIBAWS;
 
 
-SQSQueue::SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility) : _sqs(sqs), _queueUrl(queueUrl), _canonicalUri(canonicalUri), _visibility(visibility)
+SQSQueue::SQSQueue(const SQS *sqs, const std::string &queueUrl, const std::string & canonicalUri, int visibility, const bool debugInfo) : _sqs(sqs), _queueUrl(queueUrl), _canonicalUri(canonicalUri), _visibility(visibility), _debugInfo(debugInfo)
 {}
 
-SQS::SQS(const std::string & awsKeyID, const std::string& awsSecretKey, const std::string &region){
+SQS::SQS(const std::string & awsKeyID, const std::string& awsSecretKey, const std::string &region, const bool debugInfo){
 	this->_awsKeyID = awsKeyID;
 	this->_awsSecretKey = awsSecretKey;
 	this->_method = "GET";
@@ -39,6 +39,8 @@ SQS::SQS(const std::string & awsKeyID, const std::string& awsSecretKey, const st
 	this->_region = region;
 	this->_host = "sqs." + region + ".amazonaws.com";
 	this->_endpoint = "https://" + this->_host; 
+
+	_debugInfo = debugInfo;
 }
 
 void SQSQueue::sendMessage(const std::string &message, const std::string &optionalParameter) const {
@@ -52,7 +54,7 @@ void SQSQueue::sendMessage(const std::string &message, const std::string &option
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("SendMessage"), param);
 
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 }
 
 std::list<std::pair<std::string, std::string>> SQSQueue::recvMessages(int maxNumberOfMessages) const {
@@ -63,7 +65,7 @@ std::list<std::pair<std::string, std::string>> SQSQueue::recvMessages(int maxNum
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("ReceiveMessage"), param);
 	
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 		
 	std::list<std::pair<std::string, std::string>> rep = Utils::getMessagesLst(ss);	
 	return std::move(rep);
@@ -75,14 +77,14 @@ void SQSQueue::deleteMessage(std::string &receiptHandle) const {
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("DeleteMessage"), param);
 
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 }
 
 void SQSQueue::purge() const {
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("PurgeQueue"));
 	
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 }
 
 
@@ -91,7 +93,7 @@ int  SQSQueue::size() const {
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("GetQueueAttributes"), param);
 
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 	return Utils::getQueueSize(ss);	
 }
 
@@ -116,7 +118,7 @@ void SQSQueue::sendMessageBatch(std::vector<std::string> &messageList) const {
 			throw (std::runtime_error("The sum of all a batch's individual message lengths is above 256 KB"));
 		}
 		requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("SendMessageBatch"), param);
-		Utils::executeRequest(requestUrl, ss);
+		Utils::executeRequest(requestUrl, ss, _debugInfo);
 	}
 
 }
@@ -141,7 +143,7 @@ void SQSQueue::deleteMessageBatch(std::vector<std::string> &messageList) const {
 			throw (std::runtime_error("The sum of all a batch's individual message lengths is above 256 KB"));
 		}
 		requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("DeleteMessageBatch"), param);
-		Utils::executeRequest(requestUrl, ss);
+		Utils::executeRequest(requestUrl, ss, _debugInfo);
 	}
 
 }
@@ -161,7 +163,7 @@ const SQSQueue& SQS::getQueue(const std::string &queueName, bool create) const {
 	std::string requestUrl = this->generateUrl(std::move("/"), std::move("CreateQueue"), param);
 
 	std::stringstream ss;
-	Utils::executeRequest(requestUrl, ss);
+	Utils::executeRequest(requestUrl, ss, _debugInfo);
 
 	std::string queueUrl = Utils::getQueueUrl(ss);
 
