@@ -65,10 +65,6 @@ std::string Utils::AWSAuth::generateUrl(const std::string &canonicalUri, const s
   canonicalQuerystring += "&X-Amz-Signature=" + signature;
   std::string requestUrl = this->_endpoint + canonicalUri + "?" + canonicalQuerystring;
 
-  #ifdef DEBUG
-    std::cout << requestUrl << std::endl;
-  #endif
-
   return std::move(requestUrl);
 }
 
@@ -285,12 +281,18 @@ int Utils::getQueueSize(std::stringstream &ss) {
 
 
 void Utils::executeRequest(const std::string &url, std::stringstream &ss) {
+#ifdef DEBUG
+      std::cout << "Request: " << ss.str() << std::endl;
+#endif
 	curl_writer writer(ss);
 	curl_easy easy(writer);
   easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
   easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION,1L));
   try {
       easy.perform();
+#ifdef DEBUG
+      std::cout << "Response: " << ss.str() << std::endl;
+#endif
   } 
   catch (curl_easy_exception error) {
       // If you want to get the entire error stack we can do:
