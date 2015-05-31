@@ -34,8 +34,6 @@
 #include <stdexcept>
 #include <utility>
 
-//#define DEBUG // TODO REMOVE
-
 namespace LIBAWS {
 	namespace Utils {
 
@@ -53,7 +51,7 @@ namespace LIBAWS {
 	};
 
 	// call the url and put the body in the stringstream
-	void 		executeRequest(const std::string &url, std::stringstream &ss);
+	void 		executeRequest(const std::string &url, std::stringstream &ss, const bool debugInfo=false);
 
 	// return the queueUrl from the stringstream
 	std::string getQueueUrl(std::stringstream &ss);
