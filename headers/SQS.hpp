@@ -52,7 +52,7 @@ namespace LIBAWS {
 		int  getVisibility() const { return _visibility; }
 
 		void sendMessage(const std::string &message, const std::string &optionalParameter = "") const;
-		std::list<std::pair<std::string, std::string>> recvMessages(int maxNumberOfMessages) const;
+		std::list<std::pair<std::string, std::string>> recvMessages(const unsigned int maxNumberOfMessages, const unsigned int longPollSeconds=0) const;
 		void deleteMessage(std::string receiptHandle) const;
 		void purge() const;
 		int  size() const;

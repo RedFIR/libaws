@@ -57,10 +57,12 @@ void SQSQueue::sendMessage(const std::string &message, const std::string &option
 	Utils::executeRequest(requestUrl, ss, _debugInfo);
 }
 
-std::list<std::pair<std::string, std::string>> SQSQueue::recvMessages(int maxNumberOfMessages) const {
+std::list<std::pair<std::string, std::string>> SQSQueue::recvMessages(const unsigned int maxNumberOfMessages, const unsigned int longPollSeconds) const {
 	assert(!(maxNumberOfMessages < 1 || maxNumberOfMessages > 10));
 
 	std::string param = Utils::sprintf("&MaxNumberOfMessages=%&VisibilityTimeout=%", maxNumberOfMessages, this->_visibility);
+	if (longPollSeconds)
+		param += Utils::sprintf("&WaitTimeSeconds=%", longPollSeconds);
 
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("ReceiveMessage"), param);
 	
