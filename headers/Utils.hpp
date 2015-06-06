@@ -57,7 +57,7 @@ namespace LIBAWS {
 	std::string getQueueUrl(std::stringstream &ss);
 
 	// return the canonicalUri from the stringstream
-	std::string getQueueCanonicalUri(std::string &queueUrl);
+	std::string getQueueCanonicalUri(const std::string &queueUrl);
 
 	// return a list of messages from the strinstream
 	std::list<std::pair<std::string, std::string>> getMessagesLst(std::stringstream &ss);
@@ -74,8 +74,8 @@ namespace LIBAWS {
 	int getQueueSize(std::stringstream &ss);
 
 
-	std::string escape(std::string &url);
-	std::string unescape(std::string &url);
+	std::string escape(std::string url);
+	std::string unescape(std::string url);
 
 
 		static void _sprintf(std::string &buffer, const char *str) {

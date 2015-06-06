@@ -211,7 +211,7 @@ std::string Utils::getQueueUrl(std::stringstream &ss) { //TODO check for memory 
 }
 
 
-std::string Utils::getQueueCanonicalUri(std::string &queueUrl) { //Use regex when supported by the compiler
+std::string Utils::getQueueCanonicalUri(const std::string &queueUrl) { //Use regex when supported by the compiler
   std::string tmp(queueUrl);
   unsigned long idx;
   bool found = false;
@@ -306,12 +306,12 @@ void Utils::executeRequest(const std::string &url, std::stringstream &ss, const 
 
 static curl_easy _easy; //used to encode/decode stuff
 
-std::string Utils::escape(std::string &url) {
+std::string Utils::escape(std::string url) {
     _easy.escape(url);
     return url;
 }
 
-std::string Utils::unescape(std::string &url) {
+std::string Utils::unescape(std::string url) {
   _easy.unescape(url);
   return url;
 }

@@ -71,7 +71,7 @@ std::list<std::pair<std::string, std::string>> SQSQueue::recvMessages(int maxNum
 	return std::move(rep);
 }
 
-void SQSQueue::deleteMessage(std::string &receiptHandle) const {
+void SQSQueue::deleteMessage(std::string receiptHandle) const {
 
 	std::string param = "&ReceiptHandle=" + Utils::escape(receiptHandle);
 	std::string requestUrl = this->_sqs->generateUrl(this->_canonicalUri, std::move("DeleteMessage"), param);
