@@ -53,7 +53,7 @@ namespace LIBAWS {
 
 		void sendMessage(const std::string &message, const std::string &optionalParameter = "") const;
 		std::list<std::pair<std::string, std::string>> recvMessages(int maxNumberOfMessages) const;
-		void deleteMessage(const std::string &receiptHandle) const;
+		void deleteMessage(std::string receiptHandle) const;
 		void purge() const;
 		int  size() const;
 
