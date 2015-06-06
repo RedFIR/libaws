@@ -169,7 +169,7 @@ const SQSQueue& SQS::getQueue(const std::string &queueName, bool create) const {
 
 	std::string queueUrl = Utils::getQueueUrl(ss);
 
-	auto newQueue = std::shared_ptr<SQSQueue>(new SQSQueue(this, queueUrl,  Utils::getQueueCanonicalUri(queueUrl)));
+	auto newQueue = std::shared_ptr<SQSQueue>(new SQSQueue(this, queueUrl,  Utils::getQueueCanonicalUri(queueUrl), _debugInfo));
 	const_cast<SQS*>(this)->_queueMap[queueName] = newQueue;
 	return *newQueue;
 }
